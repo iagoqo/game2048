@@ -10,7 +10,17 @@ import {
   Grid,
 } from "./styles";
 
+type Direction = "up" | "down" | "left" | "right";
+
 const GRID_SIZE = 6;
+
+const generateNewGrid = () => {
+  const grid: number[][] = new Array(GRID_SIZE)
+    .fill(null)
+    .map(() => new Array(GRID_SIZE).fill(0));
+  addRandomTwo(grid);
+  return grid;
+};
 
 const addRandomTwo = (grid: number[][]) => {
   const offsetRow = Math.floor(Math.random() * GRID_SIZE);
@@ -28,20 +38,89 @@ const addRandomTwo = (grid: number[][]) => {
   }
 };
 
-const generateNewGrid = () => {
-  const grid: number[][] = new Array(GRID_SIZE)
-    .fill(null)
-    .map(() => new Array(GRID_SIZE).fill(0));
-  addRandomTwo(grid);
-  return grid;
+const mergeLine = (line: number[]) => {
+  const cleanLine = line.filter((v) => v !== 0);
+  let mergedLine = [];
+  let idx = 0;
+  while (idx < cleanLine.length) {
+    if (cleanLine[idx] === cleanLine[idx + 1]) {
+      mergedLine.push(cleanLine[idx] * 2);
+      idx = idx + 2;
+    } else {
+      mergedLine.push(cleanLine[idx]);
+      idx++;
+    }
+  }
+  return mergedLine;
 };
+
+const merge = {
+  up: (grid: number[][]) => {
+    for (let j = 0; j < GRID_SIZE; j++) {
+      const line = [];
+      for (let i = 0; i < GRID_SIZE; i++) {
+        line.push(grid[i][j]);
+        grid[i][j] = 0;
+      }
+      const mergedLine = mergeLine(line);
+      mergedLine.forEach((v, idx) => {
+        grid[idx][j] = v;
+      });
+    }
+    return grid;
+  },
+  down: (grid: number[][]) => {
+    for (let j = 0; j < GRID_SIZE; j++) {
+      const line = [];
+      for (let i = GRID_SIZE - 1; i >= 0; i--) {
+        line.push(grid[i][j]);
+        grid[i][j] = 0;
+      }
+      const mergedLine = mergeLine(line);
+      mergedLine.forEach((v, idx) => {
+        grid[GRID_SIZE - 1 - idx][j] = v;
+      });
+    }
+    return grid;
+  },
+  left: (grid: number[][]) => {
+    for (let i = 0; i < GRID_SIZE; i++) {
+      const line = [];
+      for (let j = 0; j < GRID_SIZE; j++) {
+        line.push(grid[i][j]);
+        grid[i][j] = 0;
+      }
+      const mergedLine = mergeLine(line);
+      mergedLine.forEach((v, idx) => {
+        grid[i][idx] = v;
+      });
+    }
+    return grid;
+  },
+  right: (grid: number[][]) => {
+    for (let i = 0; i < GRID_SIZE; i++) {
+      const line = [];
+      for (let j = GRID_SIZE - 1; j >= 0; j--) {
+        line.push(grid[i][j]);
+        grid[i][j] = 0;
+      }
+      const mergedLine = mergeLine(line);
+      mergedLine.forEach((v, idx) => {
+        grid[i][GRID_SIZE - 1 - idx] = v;
+      });
+    }
+    return grid;
+  },
+} as const;
 
 function App() {
   const [grid, setGrid] = useState<number[][]>(generateNewGrid());
 
   const slide = useCallback(
-    (direction: "up" | "down" | "left" | "right") => {
+    (direction: Direction) => {
       const newGrid = _.cloneDeep(grid);
+      merge[direction](newGrid);
+      if (_.isEqual(grid, newGrid)) return;
       addRandomTwo(newGrid);
       setGrid(newGrid);
     },
