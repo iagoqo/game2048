@@ -8,16 +8,17 @@ import {
   Cell,
   Container,
   Grid,
+  WinMessage,
 } from "./styles";
 
 type Direction = "up" | "down" | "left" | "right";
 
 const GRID_SIZE = 6;
 
-const generateNewGrid = () => {
-  const grid: number[][] = new Array(GRID_SIZE)
+const generateNewGrid = (size: number) => {
+  const grid: number[][] = new Array(size)
     .fill(null)
-    .map(() => new Array(GRID_SIZE).fill(0));
+    .map(() => new Array(size).fill(0));
   addRandomTwo(grid);
   return grid;
 };
@@ -113,26 +114,44 @@ const merge = {
   },
 } as const;
 
+const checkWin = (grid: number[][]) => {
+  for (let i = 0; i < GRID_SIZE; i++) {
+    for (let j = 0; j < GRID_SIZE; j++) {
+      if (grid[i][j] === 2048) {
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
 function App() {
-  const [grid, setGrid] = useState<number[][]>(generateNewGrid());
+  const [grid, setGrid] = useState<number[][]>(generateNewGrid(GRID_SIZE));
+  const [hasWon, setHasWon] = useState(false);
 
   const slide = useCallback(
     (direction: Direction) => {
       const newGrid = _.cloneDeep(grid);
       merge[direction](newGrid);
       if (_.isEqual(grid, newGrid)) return;
+      if (checkWin(newGrid)) {
+        setHasWon(true);
+        return;
+      }
       addRandomTwo(newGrid);
       setGrid(newGrid);
     },
     [grid]
   );
   const restart = useCallback(() => {
-    setGrid(generateNewGrid());
+    setGrid(generateNewGrid(GRID_SIZE));
+    setHasWon(false);
   }, []);
 
   return (
     <Container>
-      <Grid>
+      <Grid size={GRID_SIZE}>
+        {hasWon && <WinMessage>YOU WIN!</WinMessage>}
         {grid.map((row) =>
           row.map((v) => <Cell length={`${v}`.length}>{v > 0 ? v : ""}</Cell>)
         )}

@@ -7,15 +7,18 @@ export const Container = styled.div`
   gap: 24px;
 `;
 
-export const Grid = styled.div`
-  display: grid;
-  gap: 4px;
-  grid-template-columns: repeat(6, max-content);
-  grid-template-rows: repeat(6, max-content);
-  background-color: #555;
-  padding: 20px;
-  border-radius: 2px;
-`;
+export const Grid = styled.div<{ size: number }>(
+  ({ size }) => css`
+    position: relative;
+    display: grid;
+    gap: 4px;
+    grid-template-columns: repeat(${size}, max-content);
+    grid-template-rows: repeat(${size}, max-content);
+    background-color: #555;
+    padding: 20px;
+    border-radius: 2px;
+  `
+);
 
 export const Cell = styled.div<{ length?: number }>(
   ({ length = 1 }) => css`
@@ -75,3 +78,19 @@ export const ArrowButton = styled(Button)<{
     font-size: 2em;
   `
 );
+
+export const WinMessage = styled.div`
+  color: #9f9;
+  font-size: 4em;
+  font-weight: bold;
+  background-color: #0002;
+  display: flex;
+  align-items: center;
+  text-align: center;
+
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+`;
