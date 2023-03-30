@@ -15,20 +15,9 @@ import {
 
 type Direction = "up" | "down" | "left" | "right";
 
-const generateNewGrid = (size: number) => {
-  let safeSize = 2;
-  if (size > 2) {
-    safeSize = size;
-  }
-
-  const grid: number[][] = new Array(safeSize)
-    .fill(null)
-    .map(() => new Array(safeSize).fill(0));
-
-  addRandomTwo(grid);
-  return grid;
-};
-
+/**
+ * Adds a 2 on a random empty cell.
+ */
 const addRandomTwo = (grid: number[][]) => {
   const offsetRow = Math.floor(Math.random() * grid.length);
   const offsetColumn = Math.floor(Math.random() * grid[0].length);
@@ -45,6 +34,26 @@ const addRandomTwo = (grid: number[][]) => {
   }
 };
 
+/**
+ * Creates an empty grid of the specified size with a 2 in a random position.
+ */
+const generateNewGrid = (size: number) => {
+  let safeSize = 2;
+  if (size > 2) {
+    safeSize = size;
+  }
+
+  const grid: number[][] = new Array(safeSize)
+    .fill(null)
+    .map(() => new Array(safeSize).fill(0));
+
+  addRandomTwo(grid);
+  return grid;
+};
+
+/**
+ * Given a line of numbers, adds them together if they are next to each other.
+ */
 const mergeLine = (line: number[]) => {
   const cleanLine = line.filter((v) => v !== 0);
   let mergedLine = [];
@@ -61,6 +70,10 @@ const mergeLine = (line: number[]) => {
   return mergedLine;
 };
 
+/**
+ * Merges all lines in a given direction.
+ * All implementations are similar, only changing the order in which lines are created.
+ */
 const merge = {
   up: (grid: number[][]) => {
     for (let j = 0; j < grid[0].length; j++) {
@@ -120,6 +133,11 @@ const merge = {
   },
 } as const;
 
+/**
+ * Runs through the grid checking if there's a win or loss condition.
+ * Win: 2048 is found on the grid.
+ * Loss: There are no empty spaces and no adjacent numbers of the same value.
+ */
 const checkWinOrLoss = (grid: number[][]) => {
   let loss = true;
   for (let i = 0; i < grid.length; i++) {
@@ -147,14 +165,20 @@ function App() {
   const [hasWon, setHasWon] = useState(false);
   const [hasLost, setHasLost] = useState(false);
 
+  /**
+   * Executes a slide action in the given direction, updates the board it it was a valid move
+   * and checks for win/loss conditions.
+   */
   const slide = useCallback(
     (direction: Direction) => {
       if (hasWon || hasLost) return;
       const newGrid = _.cloneDeep(grid);
       merge[direction](newGrid);
+      // Don't add a new number if the move didn't cause changes in the board
       if (_.isEqual(grid, newGrid)) return;
       addRandomTwo(newGrid);
       setGrid(newGrid);
+
       const status = checkWinOrLoss(newGrid);
       if (status === "win") {
         setHasWon(true);
@@ -165,6 +189,10 @@ function App() {
     },
     [grid, hasLost, hasWon]
   );
+
+  /**
+   * Resets the board with the user provided grid size.
+   */
   const restart = useCallback(() => {
     const newGridSize = parseInt(gridSizeInput);
     const safeNewGridSize = newGridSize > 2 ? newGridSize : 2;
