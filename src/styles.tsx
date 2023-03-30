@@ -5,6 +5,7 @@ export const Container = styled.div`
   flex-direction: column;
   align-items: center;
   gap: 24px;
+  padding: 24px;
 `;
 
 export const Grid = styled.div<{ size: number }>(
@@ -17,6 +18,9 @@ export const Grid = styled.div<{ size: number }>(
     background-color: #555;
     padding: 20px;
     border-radius: 2px;
+    max-width: calc(100vw - 40px);
+    max-height: 70vh;
+    overflow: auto;
   `
 );
 
@@ -64,6 +68,24 @@ export const Button = styled.button`
 
   :active {
     box-shadow: 0px 0px 8px 0px #fff;
+  }
+`;
+
+export const Label = styled.label`
+  color: #ccc;
+  font-size: 2em;
+`;
+
+export const Input = styled.input`
+  background-color: #eee;
+  border: 1px solid #aaa;
+  font-size: 2em;
+  border-radius: 2px;
+  width: 3em;
+
+  :focus {
+    box-shadow: 0px 0px 4px 0px #fff;
+    outline: none;
   }
 `;
 

@@ -1,5 +1,4 @@
 import React, { useCallback, useState } from "react";
-import "./App.css";
 import _ from "lodash";
 import {
   ArrowButton,
@@ -8,29 +7,34 @@ import {
   Cell,
   Container,
   Grid,
+  Input,
+  Label,
   WinMessage,
 } from "./styles";
 
 type Direction = "up" | "down" | "left" | "right";
 
-const GRID_SIZE = 6;
-
 const generateNewGrid = (size: number) => {
-  const grid: number[][] = new Array(size)
+  let safeSize = 2;
+  if (size > 2) {
+    safeSize = size;
+  }
+
+  const grid: number[][] = new Array(safeSize)
     .fill(null)
-    .map(() => new Array(size).fill(0));
+    .map(() => new Array(safeSize).fill(0));
   addRandomTwo(grid);
   return grid;
 };
 
 const addRandomTwo = (grid: number[][]) => {
-  const offsetRow = Math.floor(Math.random() * GRID_SIZE);
-  const offsetColumn = Math.floor(Math.random() * GRID_SIZE);
+  const offsetRow = Math.floor(Math.random() * grid.length);
+  const offsetColumn = Math.floor(Math.random() * grid[0].length);
 
-  for (let i = 0; i < GRID_SIZE; i++) {
-    for (let j = 0; j < GRID_SIZE; j++) {
-      const row = (i + offsetRow) % GRID_SIZE;
-      const column = (j + offsetColumn) % GRID_SIZE;
+  for (let i = 0; i < grid.length; i++) {
+    for (let j = 0; j < grid[0].length; j++) {
+      const row = (i + offsetRow) % grid.length;
+      const column = (j + offsetColumn) % grid[0].length;
       if (grid[row][column] === 0) {
         grid[row][column] = 2;
         return grid;
@@ -57,9 +61,9 @@ const mergeLine = (line: number[]) => {
 
 const merge = {
   up: (grid: number[][]) => {
-    for (let j = 0; j < GRID_SIZE; j++) {
+    for (let j = 0; j < grid[0].length; j++) {
       const line = [];
-      for (let i = 0; i < GRID_SIZE; i++) {
+      for (let i = 0; i < grid.length; i++) {
         line.push(grid[i][j]);
         grid[i][j] = 0;
       }
@@ -71,23 +75,23 @@ const merge = {
     return grid;
   },
   down: (grid: number[][]) => {
-    for (let j = 0; j < GRID_SIZE; j++) {
+    for (let j = 0; j < grid[0].length; j++) {
       const line = [];
-      for (let i = GRID_SIZE - 1; i >= 0; i--) {
+      for (let i = grid.length - 1; i >= 0; i--) {
         line.push(grid[i][j]);
         grid[i][j] = 0;
       }
       const mergedLine = mergeLine(line);
       mergedLine.forEach((v, idx) => {
-        grid[GRID_SIZE - 1 - idx][j] = v;
+        grid[grid.length - 1 - idx][j] = v;
       });
     }
     return grid;
   },
   left: (grid: number[][]) => {
-    for (let i = 0; i < GRID_SIZE; i++) {
+    for (let i = 0; i < grid.length; i++) {
       const line = [];
-      for (let j = 0; j < GRID_SIZE; j++) {
+      for (let j = 0; j < grid[i].length; j++) {
         line.push(grid[i][j]);
         grid[i][j] = 0;
       }
@@ -99,15 +103,15 @@ const merge = {
     return grid;
   },
   right: (grid: number[][]) => {
-    for (let i = 0; i < GRID_SIZE; i++) {
+    for (let i = 0; i < grid.length; i++) {
       const line = [];
-      for (let j = GRID_SIZE - 1; j >= 0; j--) {
+      for (let j = grid[i].length - 1; j >= 0; j--) {
         line.push(grid[i][j]);
         grid[i][j] = 0;
       }
       const mergedLine = mergeLine(line);
       mergedLine.forEach((v, idx) => {
-        grid[i][GRID_SIZE - 1 - idx] = v;
+        grid[i][grid[i].length - 1 - idx] = v;
       });
     }
     return grid;
@@ -115,8 +119,8 @@ const merge = {
 } as const;
 
 const checkWin = (grid: number[][]) => {
-  for (let i = 0; i < GRID_SIZE; i++) {
-    for (let j = 0; j < GRID_SIZE; j++) {
+  for (let i = 0; i < grid.length; i++) {
+    for (let j = 0; j < grid[i].length; j++) {
       if (grid[i][j] === 2048) {
         return true;
       }
@@ -126,7 +130,9 @@ const checkWin = (grid: number[][]) => {
 };
 
 function App() {
-  const [grid, setGrid] = useState<number[][]>(generateNewGrid(GRID_SIZE));
+  const [gridSize, setGridSize] = useState(6);
+  const [gridSizeInput, setGridSizeInput] = useState(`${gridSize}`);
+  const [grid, setGrid] = useState<number[][]>(generateNewGrid(gridSize));
   const [hasWon, setHasWon] = useState(false);
 
   const slide = useCallback(
@@ -144,13 +150,16 @@ function App() {
     [grid]
   );
   const restart = useCallback(() => {
-    setGrid(generateNewGrid(GRID_SIZE));
+    const newGridSize = parseInt(gridSizeInput);
+    const safeNewGridSize = newGridSize > 2 ? newGridSize : 2;
+    setGridSize(safeNewGridSize);
+    setGrid(generateNewGrid(safeNewGridSize));
     setHasWon(false);
-  }, []);
+  }, [gridSizeInput]);
 
   return (
     <Container>
-      <Grid size={GRID_SIZE}>
+      <Grid size={gridSize}>
         {hasWon && <WinMessage>YOU WIN!</WinMessage>}
         {grid.map((row) =>
           row.map((v) => <Cell length={`${v}`.length}>{v > 0 ? v : ""}</Cell>)
@@ -171,7 +180,16 @@ function App() {
         </ArrowButton>
       </ArrowButtonContainer>
       <div>
-        <Button onClick={restart}>Reset</Button>
+        <Label>Grid size</Label>{" "}
+        <Input
+          type="number"
+          value={gridSizeInput}
+          onChange={(e) => setGridSizeInput(e.target.value)}
+          min={2}
+        />
+      </div>
+      <div>
+        <Button onClick={restart}>Restart</Button>
       </div>
     </Container>
   );
