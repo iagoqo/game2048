@@ -108,6 +108,7 @@ export const WinMessage = styled.div`
   background-color: #0002;
   display: flex;
   align-items: center;
+  justify-content: center;
   text-align: center;
 
   position: absolute;

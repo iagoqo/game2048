@@ -23,6 +23,7 @@ const generateNewGrid = (size: number) => {
   const grid: number[][] = new Array(safeSize)
     .fill(null)
     .map(() => new Array(safeSize).fill(0));
+
   addRandomTwo(grid);
   return grid;
 };
@@ -137,17 +138,18 @@ function App() {
 
   const slide = useCallback(
     (direction: Direction) => {
+      if (hasWon) return;
       const newGrid = _.cloneDeep(grid);
       merge[direction](newGrid);
       if (_.isEqual(grid, newGrid)) return;
+      addRandomTwo(newGrid);
+      setGrid(newGrid);
       if (checkWin(newGrid)) {
         setHasWon(true);
         return;
       }
-      addRandomTwo(newGrid);
-      setGrid(newGrid);
     },
-    [grid]
+    [grid, hasWon]
   );
   const restart = useCallback(() => {
     const newGridSize = parseInt(gridSizeInput);
