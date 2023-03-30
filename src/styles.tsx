@@ -103,9 +103,9 @@ export const ArrowButton = styled(Button)<{
 
 export const WinMessage = styled.div`
   color: #9f9;
-  font-size: 4em;
+  font-size: 3em;
   font-weight: bold;
-  background-color: #0002;
+  background-color: #0005;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -116,4 +116,8 @@ export const WinMessage = styled.div`
   bottom: 0;
   left: 0;
   right: 0;
+`;
+
+export const LossMessage = styled(WinMessage)`
+  color: #f99;
 `;

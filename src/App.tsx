@@ -9,6 +9,7 @@ import {
   Grid,
   Input,
   Label,
+  LossMessage,
   WinMessage,
 } from "./styles";
 
@@ -119,15 +120,24 @@ const merge = {
   },
 } as const;
 
-const checkWin = (grid: number[][]) => {
+const checkWinOrLoss = (grid: number[][]) => {
+  let loss = true;
   for (let i = 0; i < grid.length; i++) {
     for (let j = 0; j < grid[i].length; j++) {
       if (grid[i][j] === 2048) {
-        return true;
+        return "win";
+      }
+      if (
+        (loss &&
+          (grid[i][j] === 0 ||
+            (grid[i + 1] && grid[i][j] === grid[i + 1][j]))) ||
+        grid[i][j] === grid[i][j + 1]
+      ) {
+        loss = false;
       }
     }
   }
-  return false;
+  return loss ? "loss" : undefined;
 };
 
 function App() {
@@ -135,21 +145,25 @@ function App() {
   const [gridSizeInput, setGridSizeInput] = useState(`${gridSize}`);
   const [grid, setGrid] = useState<number[][]>(generateNewGrid(gridSize));
   const [hasWon, setHasWon] = useState(false);
+  const [hasLost, setHasLost] = useState(false);
 
   const slide = useCallback(
     (direction: Direction) => {
-      if (hasWon) return;
+      if (hasWon || hasLost) return;
       const newGrid = _.cloneDeep(grid);
       merge[direction](newGrid);
       if (_.isEqual(grid, newGrid)) return;
       addRandomTwo(newGrid);
       setGrid(newGrid);
-      if (checkWin(newGrid)) {
+      const status = checkWinOrLoss(newGrid);
+      if (status === "win") {
         setHasWon(true);
-        return;
+      }
+      if (status === "loss") {
+        setHasLost(true);
       }
     },
-    [grid, hasWon]
+    [grid, hasLost, hasWon]
   );
   const restart = useCallback(() => {
     const newGridSize = parseInt(gridSizeInput);
@@ -157,14 +171,20 @@ function App() {
     setGridSize(safeNewGridSize);
     setGrid(generateNewGrid(safeNewGridSize));
     setHasWon(false);
+    setHasLost(false);
   }, [gridSizeInput]);
 
   return (
     <Container>
       <Grid size={gridSize}>
         {hasWon && <WinMessage>YOU WIN!</WinMessage>}
-        {grid.map((row) =>
-          row.map((v) => <Cell length={`${v}`.length}>{v > 0 ? v : ""}</Cell>)
+        {hasLost && <LossMessage>YOU LOSE!</LossMessage>}
+        {grid.map((row, i) =>
+          row.map((v, j) => (
+            <Cell key={`${i}-${j}`} length={`${v}`.length}>
+              {v > 0 ? v : ""}
+            </Cell>
+          ))
         )}
       </Grid>
       <ArrowButtonContainer>
